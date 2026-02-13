@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRGlubyBNw7N2aWwgLSBQcm9mLiBBbGV4IFZhY2NhIiwic2hvcnRfbmFtZSI6IkRpbm8gTcOzdmlsIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjE3MmEiLCJ0aGVtZV9jb2xvciI6IiMwZjE3MmEifQ==">
+<title>🦖 Dino Móvil · Prof. Alex Vacca</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky1:#0f172a;--sky2:#1e293b;--ground:#22c55e;
+  --dino:#fbbf24;--dino-dark:#d97706;
+  --neon:#00ff88;--neon2:#00d4ff;--pink:#f472b6;
+  --card-bg:rgba(15,23,42,0.95);
+  --text:#f1f5f9;--dim:#94a3b8;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overflow:hidden;height:100%;width:100%;touch-action:manipulation;font-family:'Nunito',sans-serif}
+body{background:var(--sky1);color:var(--text)}
+canvas{display:block;width:100%;height:100%}
+.screen{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;transition:opacity .5s,visibility .5s}
+.screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#splashScreen{background:radial-gradient(ellipse at 50% 80%,#1a2744 0%,#0f172a 70%)}
+.splash-dino{font-size:80px;animation:dinoBounce 1.2s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(251,191,36,.4))}
+@keyframes dinoBounce{0%,100%{transform:translateY(0) scaleX(1)}30%{transform:translateY(-25px) scaleX(1)}50%{transform:translateY(-25px) scaleX(-1)}80%{transform:translateY(0) scaleX(-1)}}
+.splash-title{font-family:'Press Start 2P',monospace;font-size:clamp(12px,3.5vw,22px);color:var(--neon);text-shadow:0 0 20px rgba(0,255,136,.4);margin-top:24px;text-align:center;line-height:1.8}
+.splash-sub{font-size:clamp(13px,2.5vw,17px);color:var(--dim);margin-top:12px;text-align:center;line-height:1.6}
+.splash-prof{margin-top:20px;font-size:15px;color:var(--neon2);font-weight:700;letter-spacing:1px}
+.play-btn{margin-top:36px;font-family:'Press Start 2P',monospace;font-size:clamp(11px,2vw,14px);padding:18px 36px;background:var(--neon);color:#0f172a;border:none;border-radius:12px;cursor:pointer;box-shadow:0 0 30px rgba(0,255,136,.3),0 4px 20px rgba(0,0,0,.4);transition:transform .2s;animation:btnPulse 2s ease-in-out infinite}
+.play-btn:active{transform:scale(.95)}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 20px rgba(0,255,136,.3)}50%{box-shadow:0 0 40px rgba(0,255,136,.5),0 0 60px rgba(0,255,136,.2)}}
+.splash-hint{margin-top:20px;font-family:'Press Start 2P',monospace;font-size:8px;color:var(--dim);animation:blink 1.5s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+#infoPanel{background:rgba(0,0,0,.75);backdrop-filter:blur(12px);z-index:200}
+.info-card{background:var(--card-bg);border:2px solid rgba(0,255,136,.2);border-radius:20px;padding:28px 24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 0 60px rgba(0,255,136,.1),0 20px 60px rgba(0,0,0,.6);animation:cardIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes cardIn{from{transform:translateY(40px) scale(.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.info-level-tag{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--dino);letter-spacing:2px;margin-bottom:6px}
+.info-title{font-family:'Press Start 2P',monospace;font-size:clamp(11px,2.5vw,16px);color:var(--neon);line-height:1.8;margin-bottom:16px}
+.info-emoji{font-size:40px;display:block;text-align:center;margin-bottom:14px}
+.info-body{font-size:14px;line-height:1.8;color:var(--text)}
+.info-body strong{color:var(--neon2);font-weight:800}
+.info-body .highlight{background:rgba(0,255,136,.08);border-left:3px solid var(--neon);padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:13px;color:var(--dim);line-height:1.7}
+.info-body .tag{display:inline-block;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:var(--neon2);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;margin:3px 2px}
+.info-body .item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:10px;align-items:flex-start}
+.info-body .item:last-child{border-bottom:none}
+.info-body .item-icon{flex-shrink:0;width:28px;height:28px;background:rgba(0,255,136,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.info-speak{margin-top:18px;padding:12px 16px;background:linear-gradient(135deg,rgba(244,114,182,.1),rgba(251,191,36,.1));border:1px dashed var(--pink);border-radius:12px;font-family:'Press Start 2P',monospace;font-size:8px;color:var(--pink);line-height:2;text-align:center}
+.continue-btn{margin-top:20px;width:100%;font-family:'Press Start 2P',monospace;font-size:11px;padding:16px;background:var(--neon);color:#0f172a;border:none;border-radius:10px;cursor:pointer;transition:transform .2s}
+.continue-btn:active{transform:scale(.96)}
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.hud-left,.hud-right{display:flex;align-items:center;gap:10px}
+.hud-level{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--dino);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);padding:6px 12px;border-radius:6px}
+.hud-score{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--neon)}
+.hud-progress{width:120px;height:6px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.hud-progress-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:10px;transition:width .5s;box-shadow:0 0 8px rgba(0,255,136,.4)}
+.hud-obstacles{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--neon2);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:5px 10px;border-radius:6px}
+.tap-zone{position:fixed;inset:0;z-index:40;cursor:pointer}
+#winScreen{background:radial-gradient(ellipse at 50% 50%,#1a2744,#0f172a)}
+.win-dino{font-size:80px;animation:winJump .8s ease-in-out infinite}
+@keyframes winJump{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-30px) rotate(10deg)}}
+.win-title{font-family:'Press Start 2P',monospace;font-size:clamp(14px,4vw,24px);background:linear-gradient(135deg,var(--neon),var(--neon2),var(--dino));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:20px;text-align:center;line-height:1.8}
+.win-sub{color:var(--dim);font-size:15px;margin-top:12px;text-align:center;line-height:1.7;max-width:400px}
+.cleared-popup{position:fixed;z-index:60;font-family:'Press Start 2P',monospace;font-size:12px;color:var(--neon);text-shadow:0 0 10px rgba(0,255,136,.5);pointer-events:none;animation:popUp .8s ease-out forwards}
+@keyframes popUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.3)}}
+.info-card::-webkit-scrollbar{width:4px}
+.info-card::-webkit-scrollbar-track{background:transparent}
+.info-card::-webkit-scrollbar-thumb{background:rgba(0,255,136,.2);border-radius:2px}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="tap-zone" id="tapZone"></div>
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-left">
+    <div class="hud-level" id="hudLevel">NIVEL 1</div>
+    <div class="hud-progress"><div class="hud-progress-fill" id="hudProgress" style="width:0%"></div></div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-obstacles" id="hudObstacles">🌵 0/3</div>
+    <div class="hud-score" id="hudScore">0m</div>
+  </div>
+</div>
+<div class="screen" id="splashScreen">
+  <div class="splash-dino">🦖</div>
+  <div class="splash-title">DINO MÓVIL</div>
+  <div class="splash-sub">Salta obstáculos y descubre todo sobre<br><strong>Programación Móvil</strong></div>
+  <div class="splash-prof">👨‍🏫 Prof. Alex Vacca</div>
+  <button class="play-btn" id="playBtn">▶ JUGAR</button>
+  <div class="splash-hint">TOCA PANTALLA O BARRA ESPACIADORA</div>
+</div>
+<div class="screen hidden" id="infoPanel">
+  <div class="info-card" id="infoCard"></div>
+</div>
+<div class="screen hidden" id="winScreen">
+  <div class="win-dino">🦖🎓</div>
+  <div class="win-title">¡MISIÓN CUMPLIDA!</div>
+  <div class="win-sub">Has descubierto todo el contenido de<br><strong style="color:var(--neon)">Programación Móvil</strong><br><br>Ahora dile al Prof. Alex Vacca todo lo que aprendiste 🎤</div>
+  <button class="play-btn" style="margin-top:30px" onclick="location.reload()">🔄 JUGAR DE NUEVO</button>
+</div>
+<script>
+const levels=[
+  {tag:"NIVEL 1 DE 10",title:"¡BIENVENIDO!",emoji:"🎮",speak:"Dile al profesor: ¿Cómo se llama la materia, a qué programa pertenece y quién es el profesor?",body:`<strong>Materia:</strong> Programación Móvil<br><br><strong>Programa:</strong> Ingeniería de Sistemas<br><strong>Universidad:</strong> Popular del Cesar<br><strong>Profesor:</strong> Alex Vacca<br><br><div class="highlight">Esta asignatura te enseñará a desarrollar aplicaciones móviles reales, usando herramientas profesionales y buenas prácticas de la industria.</div>`,requiredJumps:3,speed:3,spawnInterval:90},
+  {tag:"NIVEL 2 DE 10",title:"DATOS DE LA MATERIA",emoji:"📋",speak:"Dile al profesor: ¿Cuántos créditos tiene, cuántas horas y cuál es el prerrequisito?",body:`<div class="item"><div class="item-icon">🔢</div><div><strong>Código:</strong> SS603</div></div><div class="item"><div class="item-icon">⭐</div><div><strong>Créditos:</strong> 3 créditos académicos</div></div><div class="item"><div class="item-icon">📅</div><div><strong>Semestre:</strong> 6to semestre</div></div><div class="item"><div class="item-icon">⏰</div><div><strong>Horas totales:</strong> 144 horas (HTT)</div></div><div class="item"><div class="item-icon">👨‍🏫</div><div><strong>Con docente:</strong> 64h (32 directas + 32 prácticas)</div></div><div class="item"><div class="item-icon">📖</div><div><strong>Trabajo independiente:</strong> 80 horas (HTI)</div></div><div class="item"><div class="item-icon">🔗</div><div><strong>Prerrequisito:</strong> Programación Web</div></div><div class="item"><div class="item-icon">📝</div><div><strong>Tipo:</strong> Teórico-Práctico · No habilitable</div></div>`,requiredJumps:3,speed:3.5,spawnInterval:85},
+  {tag:"NIVEL 3 DE 10",title:"OBJETIVO GENERAL",emoji:"🎯",speak:"Dile al profesor el objetivo general con tus propias palabras.",body:`<div class="highlight" style="border-left-color:var(--dino)"><strong style="color:var(--dino)">Objetivo General:</strong><br><br>Orientar al estudiante en el <strong>desarrollo de aplicaciones móviles</strong> considerando dispositivos, sistemas operativos, herramientas y lenguajes de programación, para <strong>solucionar problemas del mundo real</strong>.</div><br><span style="color:var(--dim);font-size:13px">💡 La clave: construir apps reales que resuelvan problemas reales con herramientas profesionales.</span>`,requiredJumps:3,speed:3.5,spawnInterval:80},
+  {tag:"NIVEL 4 DE 10",title:"OBJETIVOS ESPECÍFICOS",emoji:"✅",speak:"Menciona al profesor al menos 3 objetivos específicos.",body:`<div class="item"><div class="item-icon">🔧</div><div>Exponer las <strong>herramientas tecnológicas</strong> para construir apps móviles.</div></div><div class="item"><div class="item-icon">🏗️</div><div>Explicar la <strong>arquitectura de los SO móviles</strong>, conectividad, almacenamiento y seguridad.</div></div><div class="item"><div class="item-icon">📐</div><div>Describir las <strong>metodologías de desarrollo</strong> de apps móviles.</div></div><div class="item"><div class="item-icon">🚀</div><div>Exponer los requerimientos para un <strong>proyecto para el sector productivo</strong>.</div></div><div class="item"><div class="item-icon">🔒</div><div>Explicar los <strong>problemas de seguridad</strong> en el desarrollo móvil.</div></div>`,requiredJumps:4,speed:4,spawnInterval:75},
+  {tag:"NIVEL 5 DE 10",title:"UNIDAD 1: APPS MÓVILES",emoji:"📱",speak:"Dile al profesor: ¿Qué tipos de aplicaciones móviles existen y dónde se publican?",body:`<div class="highlight" style="border-left-color:#22c55e"><strong style="color:#22c55e">RAA1:</strong> Prepara el entorno de trabajo para el desarrollo de aplicaciones móviles en diferentes dispositivos.</div><br><strong>Contenidos:</strong><br><br><div class="item"><div class="item-icon">📌</div><div>Generalidades de las apps móviles</div></div><div class="item"><div class="item-icon">📈</div><div>Evolución de las Aplicaciones Móviles</div></div><div class="item"><div class="item-icon">📦</div><div>Tipos: Nativas, Híbridas, Web Apps, PWA</div></div><div class="item"><div class="item-icon">💻</div><div>Entornos de Desarrollo (Android Studio, Xcode, Flutter...)</div></div><div class="item"><div class="item-icon">🎨</div><div>Introducción al diseño y desarrollo</div></div><div class="item"><div class="item-icon">🏪</div><div>Tiendas: Google Play, App Store</div></div>`,requiredJumps:4,speed:4,spawnInterval:75},
+  {tag:"NIVEL 6 DE 10",title:"UNIDAD 2: DISPOSITIVOS",emoji:"📡",speak:"Dile al profesor: ¿Qué componentes tiene un dispositivo móvil y qué redes usa?",body:`<div class="highlight" style="border-left-color:var(--neon2)"><strong style="color:var(--neon2)">RAA2:</strong> Desarrolla vistas para dispositivos empleando los componentes de la interfaz natural de usuario.</div><br><strong>Contenidos:</strong><br><br><div class="item"><div class="item-icon">📊</div><div>Características generales de dispositivos</div></div><div class="item"><div class="item-icon">📱</div><div>Tipos de dispositivos móviles</div></div><div class="item"><div class="item-icon">🔩</div><div>Componentes: pantalla, sensores, cámara, GPS...</div></div><div class="item"><div class="item-icon">📶</div><div>Sistemas de comunicación inalámbricos</div></div><div class="item"><div class="item-icon">🌐</div><div>Redes de acceso: WiFi, 4G, 5G, Bluetooth</div></div>`,requiredJumps:4,speed:4.5,spawnInterval:70},
+  {tag:"NIVEL 7 DE 10",title:"UNIDAD 3: SIST. OPERATIVOS",emoji:"⚙️",speak:"Dile al profesor: ¿Cuáles son los principales SO móviles y cómo es su arquitectura?",body:`<div class="highlight" style="border-left-color:#a855f7"><strong style="color:#a855f7">RAA3:</strong> Implementa técnicas de persistencia de datos seguras para aplicaciones del lado del cliente.</div><br><strong>Contenidos:</strong><br><br><div class="item"><div class="item-icon">🤖</div><div>Tipos: Android, iOS, HarmonyOS...</div></div><div class="item"><div class="item-icon">🏛️</div><div>Arquitectura de los SO móviles (capas)</div></div><div class="item"><div class="item-icon">⚡</div><div>Funciones y estructuras del SO</div></div><div class="item"><div class="item-icon">🔄</div><div>Comunicación y Protocolos</div></div><div class="item"><div class="item-icon">💾</div><div>Almacenamiento: SQLite, SharedPreferences, archivos</div></div>`,requiredJumps:5,speed:4.5,spawnInterval:68},
+  {tag:"NIVEL 8 DE 10",title:"UNIDAD 4: METODOLOGÍA",emoji:"🏗️",speak:"Dile al profesor: ¿Qué es UX/UI y qué patrones de arquitectura conoces?",body:`<div class="highlight" style="border-left-color:#f59e0b"><strong style="color:#f59e0b">RAA4:</strong> Desarrolla aplicaciones teniendo en cuenta las buenas prácticas en la construcción de apps móviles.</div><br><strong>Contenidos:</strong><br><br><div class="item"><div class="item-icon">🎨</div><div>Diseño UX/UI de aplicaciones móviles</div></div><div class="item"><div class="item-icon">🧱</div><div>Arquitecturas: MVC, MVVM, Clean Architecture</div></div><div class="item"><div class="item-icon">🧩</div><div>Modelo de programación y componentes</div></div><div class="item"><div class="item-icon">☁️</div><div>Mejores prácticas: conectividad, almacenamiento local y externo</div></div>`,requiredJumps:5,speed:5,spawnInterval:65},
+  {tag:"NIVEL 9 DE 10",title:"UNIDAD 5: SEGURIDAD",emoji:"🛡️",speak:"Dile al profesor: ¿Cuáles son las principales vulnerabilidades de las apps móviles?",body:`<div class="highlight" style="border-left-color:var(--pink)"><strong style="color:var(--pink)">RAA5:</strong> Aplica buenas prácticas de seguridad en autenticación, autorización y auditoría.</div><br><strong>Contenidos:</strong><br><br><div class="item"><div class="item-icon">🔍</div><div>Generalidades de seguridad móvil</div></div><div class="item"><div class="item-icon">📶</div><div>Seguridad en comunicaciones inalámbricas</div></div><div class="item"><div class="item-icon">🐛</div><div>Vulnerabilidades en los SO móviles</div></div><div class="item"><div class="item-icon">📱</div><div>Seguridad en aplicaciones</div></div><div class="item"><div class="item-icon">👤</div><div>Seguridad del usuario</div></div><div class="item"><div class="item-icon">✅</div><div>Buenas Prácticas de seguridad</div></div>`,requiredJumps:5,speed:5,spawnInterval:63},
+  {tag:"NIVEL 10 DE 10",title:"EVALUACIÓN Y CIERRE",emoji:"🎓",speak:"Dile al profesor: ¿Cuáles son los 3 cortes y qué porcentaje vale cada uno?",body:`<strong>Sistema de Evaluación:</strong><br><br><div class="item"><div class="item-icon" style="background:rgba(34,197,94,.15)">1️⃣</div><div><strong style="color:#22c55e">Primer Corte (30%):</strong> RAA1 + RAA2 → Apps Móviles y Dispositivos</div></div><div class="item"><div class="item-icon" style="background:rgba(0,212,255,.15)">2️⃣</div><div><strong style="color:var(--neon2)">Segundo Corte (30%):</strong> RAA3 → Sistemas Operativos Móviles</div></div><div class="item"><div class="item-icon" style="background:rgba(244,114,182,.15)">3️⃣</div><div><strong style="color:var(--pink)">Tercer Corte (40%):</strong> RAA4 + RAA5 → Metodología y Seguridad</div></div><br><strong>Mecanismos:</strong><br><div style="margin-top:8px"><span class="tag">Examen</span><span class="tag">Quiz</span><span class="tag">Exposición</span><span class="tag">Proyecto de Aula</span><span class="tag">Estudio de Caso</span><span class="tag">Rúbricas</span><span class="tag">Investigación</span></div><br><div class="highlight" style="border-left-color:var(--dino)">💡 <strong style="color:var(--dino)">Proyecto de aula:</strong> desde el inicio del semestre identificarás problemas del entorno real y construirás una app que contribuya a su solución.</div>`,requiredJumps:6,speed:5.5,spawnInterval:60}
+];
+
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+let W,H,groundY,dpr;
+let gameRunning=false,gamePaused=false;
+let currentLevel=0,obstaclesCleared=0,score=0,frameCount=0,spawnTimer=0,nextSpawnAt=60;
+const dino={x:60,y:0,w:40,h:44,vy:0,grounded:true,jumpForce:-13,gravity:0.6};
+let obstacles=[],clouds=[],groundOffset=0,particles=[],stars=[];
+
+function resize(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  W=window.innerWidth;H=window.innerHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  groundY=H-70;dino.y=groundY-dino.h;
+  stars=[];
+  for(let i=0;i<60;i++){stars.push({x:Math.random()*W,y:Math.random()*(groundY-40),size:Math.random()*2+.5,alpha:Math.random()*.6+.2,speed:Math.random()*.005+.002})}
+}
+window.addEventListener('resize',resize);resize();
+
+for(let i=0;i<5;i++){clouds.push({x:Math.random()*W,y:40+Math.random()*(groundY*.4),w:40+Math.random()*60,speed:.3+Math.random()*.5,alpha:.03+Math.random()*.05})}
+
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.fill()}
+
+function drawSky(){
+  const g=ctx.createLinearGradient(0,0,0,groundY);
+  g.addColorStop(0,'#0f172a');g.addColorStop(.5,'#1e293b');g.addColorStop(1,'#1a2744');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,groundY);
+  for(const s of stars){const f=Math.sin(frameCount*s.speed)*.3+.7;ctx.globalAlpha=s.alpha*f;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);ctx.fill()}
+  ctx.globalAlpha=1;
+}
+
+function drawMountains(){
+  ctx.fillStyle='rgba(30,41,59,.6)';ctx.beginPath();ctx.moveTo(0,groundY);
+  for(let x=0;x<=W;x+=80)ctx.lineTo(x,groundY-(Math.sin(x*.008+1)*60+Math.sin(x*.015)*30+40));
+  ctx.lineTo(W,groundY);ctx.fill();
+  ctx.fillStyle='rgba(22,30,48,.5)';ctx.beginPath();ctx.moveTo(0,groundY);
+  for(let x=0;x<=W;x+=60)ctx.lineTo(x,groundY-(Math.sin(x*.012+3)*35+Math.sin(x*.02+1)*20+25));
+  ctx.lineTo(W,groundY);ctx.fill();
+}
+
+function drawClouds(){for(const c of clouds){ctx.globalAlpha=c.alpha;ctx.fillStyle='#94a3b8';const r=c.w*.3;ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.arc(c.x+r,c.y-r*.4,r*.7,0,Math.PI*2);ctx.arc(c.x+r*1.5,c.y,r*.8,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+
+function drawGround(){
+  ctx.fillStyle='#22c55e';ctx.fillRect(0,groundY,W,6);
+  ctx.fillStyle='#15803d';ctx.fillRect(0,groundY+6,W,H-groundY-6);
+  ctx.fillStyle='rgba(0,0,0,.12)';
+  for(let x=-groundOffset%20;x<W;x+=20)for(let dy=12;dy<H-groundY;dy+=14)if(Math.sin(x*.3+dy*.7)>.5)ctx.fillRect(x,groundY+dy,2,2);
+}
+
+function drawDino(){
+  const x=dino.x,y=dino.y;
+  ctx.globalAlpha=.15;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x+20,groundY+2,22,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#fbbf24';rr(x+8,y+6,24,22,6);rr(x+22,y-4,18,16,5);
+  ctx.beginPath();ctx.moveTo(x+8,y+12);ctx.lineTo(x-4,y+6);ctx.lineTo(x+4,y+18);ctx.fill();
+  ctx.fillStyle='#0f172a';ctx.beginPath();ctx.arc(x+34,y+2,2.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+35,y+1,1,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d97706';rr(x+32,y+6,10,3,1.5);
+  ctx.fillStyle='#fde68a';rr(x+14,y+14,14,10,4);
+  ctx.fillStyle='#d97706';
+  if(dino.grounded){const lp=Math.sin(frameCount*.3);rr(x+12,y+28+lp*3,6,14,3);rr(x+24,y+28-lp*3,6,14,3)}
+  else{rr(x+12,y+26,6,10,3);rr(x+24,y+26,6,10,3)}
+  ctx.fillStyle='#fbbf24';
+  if(!dino.grounded){ctx.save();ctx.translate(x+28,y+10);ctx.rotate(-.5);rr(0,0,4,8,2);ctx.restore()}
+  else rr(x+28,y+14,4,8,2);
+  ctx.fillStyle='#f59e0b';
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x+14+i*7,y+6);ctx.lineTo(x+17+i*7,y-2);ctx.lineTo(x+20+i*7,y+6);ctx.fill()}
+}
+
+function drawObstacles(){
+  for(const o of obstacles){
+    if(o.type==='cactus'){ctx.fillStyle='#16a34a';rr(o.x+4,o.y,12,o.h,4);ctx.fillStyle='#15803d';rr(o.x,o.y+8,6,14,3);rr(o.x+14,o.y+14,6,10,3);ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.arc(o.x+10,o.y+o.h*.3,1.5,0,Math.PI*2);ctx.arc(o.x+10,o.y+o.h*.6,1.5,0,Math.PI*2);ctx.fill()}
+    else if(o.type==='rock'){ctx.fillStyle='#475569';ctx.beginPath();ctx.moveTo(o.x,o.y+o.h);ctx.lineTo(o.x+5,o.y+4);ctx.lineTo(o.x+o.w*.4,o.y);ctx.lineTo(o.x+o.w*.7,o.y+2);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.fill();ctx.fillStyle='#64748b';ctx.beginPath();ctx.moveTo(o.x+5,o.y+4);ctx.lineTo(o.x+o.w*.4,o.y);ctx.lineTo(o.x+o.w*.5,o.y+o.h*.5);ctx.lineTo(o.x+2,o.y+o.h*.6);ctx.fill()}
+    else{ctx.fillStyle='#334155';rr(o.x,o.y,o.w,o.h,5);ctx.fillStyle='#1e293b';rr(o.x+3,o.y+6,o.w-6,o.h-12,2);ctx.fillStyle='rgba(0,212,255,.15)';rr(o.x+3,o.y+6,o.w-6,o.h-12,2);ctx.fillStyle='#475569';ctx.beginPath();ctx.arc(o.x+o.w/2,o.y+o.h-4,2,0,Math.PI*2);ctx.fill()}
+  }
+}
+
+function drawParticles(){for(const p of particles){ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+
+function drawProgressBar(){
+  if(!gameRunning||gamePaused)return;
+  const lev=levels[currentLevel];const pct=Math.min(obstaclesCleared/lev.requiredJumps,1);
+  const barW=Math.min(W*.5,220),barH=10,barX=(W-barW)/2,barY=H-28;
+  ctx.fillStyle='rgba(255,255,255,.06)';rr(barX,barY,barW,barH,5);
+  if(pct>0){ctx.fillStyle='#00ff88';rr(barX,barY,barW*pct,barH,5)}
+  for(let i=1;i<lev.requiredJumps;i++){ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(barX+(barW/lev.requiredJumps)*i-1,barY,2,barH)}
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='700 11px Nunito';ctx.textAlign='center';
+  ctx.fillText(`🌵 ${obstaclesCleared} / ${lev.requiredJumps}`,W/2,barY-8);
+}
+
+function jump(){
+  if(!gameRunning||gamePaused)return;
+  if(dino.grounded){
+    dino.vy=dino.jumpForce;dino.grounded=false;
+    for(let i=0;i<5;i++)particles.push({x:dino.x+20,y:groundY,vx:(Math.random()-.5)*3,vy:-Math.random()*3-1,size:Math.random()*3+1,life:1,color:['#22c55e','#fbbf24','#16a34a'][Math.floor(Math.random()*3)]});
+  }
+}
+
+function spawnObstacle(){
+  const types=['cactus','rock','phone'];const type=types[Math.floor(Math.random()*types.length)];
+  let o={x:W+20,type,passed:false};
+  if(type==='cactus'){o.w=20;o.h=28+Math.random()*12;o.y=groundY-o.h}
+  else if(type==='rock'){o.w=22+Math.random()*10;o.h=12+Math.random()*8;o.y=groundY-o.h}
+  else{o.w=16;o.h=26+Math.random()*10;o.y=groundY-o.h}
+  obstacles.push(o);
+}
+
+function showClearedPopup(x,y){
+  const lev=levels[currentLevel];const rem=lev.requiredJumps-obstaclesCleared;
+  const el=document.createElement('div');el.className='cleared-popup';
+  el.style.left=x+'px';el.style.top=y+'px';
+  if(rem>0)el.textContent=`+1  ¡${rem} más!`;
+  else{el.textContent='¡NIVEL COMPLETO!';el.style.color='#fbbf24';el.style.fontSize='14px'}
+  document.body.appendChild(el);setTimeout(()=>el.remove(),800);
+}
+
+function updateHUD(){
+  const lev=levels[currentLevel];
+  document.getElementById('hudLevel').textContent=`NIVEL ${currentLevel+1}`;
+  document.getElementById('hudProgress').style.width=((currentLevel)/10*100)+'%';
+  document.getElementById('hudScore').textContent=`${Math.floor(score)}m`;
+  document.getElementById('hudObstacles').textContent=`🌵 ${obstaclesCleared}/${lev.requiredJumps}`;
+}
+
+function levelComplete(){
+  gamePaused=true;
+  for(let i=0;i<35;i++)particles.push({x:dino.x+20,y:dino.y+20,vx:(Math.random()-.5)*10,vy:-Math.random()*10-2,size:Math.random()*5+2,life:1,color:['#00ff88','#00d4ff','#fbbf24','#f472b6','#a855f7'][Math.floor(Math.random()*5)]});
+  showInfoPanel(currentLevel);
+}
+
+function showInfoPanel(idx){
+  const lev=levels[idx];const card=document.getElementById('infoCard');
+  card.innerHTML=`<div class="info-level-tag">${lev.tag}</div><div class="info-emoji">${lev.emoji}</div><div class="info-title">${lev.title}</div><div class="info-body">${lev.body}</div><div class="info-speak">🎤 ${lev.speak}</div><button class="continue-btn" id="continueBtn">${idx<9?'▶ SIGUIENTE NIVEL':'🎓 FINALIZAR'}</button>`;
+  document.getElementById('infoPanel').classList.remove('hidden');
+  document.getElementById('continueBtn').onclick=()=>{
+    document.getElementById('infoPanel').classList.add('hidden');
+    if(currentLevel<9){currentLevel++;obstaclesCleared=0;obstacles=[];spawnTimer=0;gamePaused=false;updateHUD()}
+    else{gameRunning=false;document.getElementById('hud').style.display='none';document.getElementById('tapZone').style.display='none';document.getElementById('winScreen').classList.remove('hidden')}
+  };
+}
+
+function update(){
+  if(!gameRunning||gamePaused)return;
+  frameCount++;const lev=levels[currentLevel];
+  if(!dino.grounded){dino.vy+=dino.gravity;dino.y+=dino.vy;if(dino.y>=groundY-dino.h){dino.y=groundY-dino.h;dino.vy=0;dino.grounded=true}}
+  for(let i=obstacles.length-1;i>=0;i--){obstacles[i].x-=lev.speed;if(obstacles[i].x<-50)obstacles.splice(i,1)}
+  spawnTimer++;
+  if(spawnTimer>=nextSpawnAt&&obstaclesCleared<lev.requiredJumps){spawnObstacle();spawnTimer=0;nextSpawnAt=lev.spawnInterval+Math.floor(Math.random()*30)-10}
+  for(const c of clouds){c.x-=c.speed;if(c.x<-80){c.x=W+40;c.y=40+Math.random()*(groundY*.4)}}
+  groundOffset+=lev.speed;
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.life-=.025;if(p.life<=0)particles.splice(i,1)}
+  score+=lev.speed*.1;
+  // Collision — gentle, just remove obstacle
+  const dx=dino.x+10,dy=dino.y+6,dw=26,dh=dino.h-8;
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o=obstacles[i];if(o.passed)continue;
+    if(dx<o.x+o.w-4&&dx+dw>o.x+2&&dy<o.y+o.h-4&&dy+dh>o.y+2){
+      for(let j=0;j<6;j++)particles.push({x:o.x+o.w/2,y:o.y,vx:(Math.random()-.5)*6,vy:-Math.random()*5-1,size:Math.random()*3+1,life:1,color:['#ef4444','#f97316','#fbbf24'][Math.floor(Math.random()*3)]});
+      obstacles.splice(i,1);
+      canvas.style.transform='translateX(4px)';setTimeout(()=>{canvas.style.transform='translateX(-2px)'},80);setTimeout(()=>{canvas.style.transform=''},160);
+    }
+  }
+  // Check passed
+  for(const o of obstacles){
+    if(!o.passed&&o.x+o.w<dino.x){
+      o.passed=true;obstaclesCleared++;
+      showClearedPopup(dino.x+40,dino.y-10);
+      for(let i=0;i<4;i++)particles.push({x:dino.x+30,y:dino.y,vx:Math.random()*4,vy:-Math.random()*4-1,size:Math.random()*3+1,life:1,color:'#00ff88'});
+      updateHUD();
+      if(obstaclesCleared>=lev.requiredJumps)setTimeout(()=>levelComplete(),300);
+    }
+  }
+  document.getElementById('hudScore').textContent=`${Math.floor(score)}m`;
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);drawSky();drawMountains();drawClouds();drawGround();drawObstacles();drawDino();drawParticles();drawProgressBar();
+}
+
+function loop(){update();draw();requestAnimationFrame(loop)}
+
+document.getElementById('tapZone').addEventListener('touchstart',e=>{e.preventDefault();jump()},{passive:false});
+document.getElementById('tapZone').addEventListener('mousedown',e=>{e.preventDefault();jump()});
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
+
+document.getElementById('playBtn').addEventListener('click',()=>{
+  document.getElementById('splashScreen').classList.add('hidden');
+  document.getElementById('hud').style.display='flex';
+  gameRunning=true;gamePaused=false;currentLevel=0;obstaclesCleared=0;score=0;spawnTimer=0;nextSpawnAt=40;
+  obstacles=[];dino.y=groundY-dino.h;dino.vy=0;dino.grounded=true;updateHUD();
+});
+
+loop();
+</script>
+</body>
+</html>
