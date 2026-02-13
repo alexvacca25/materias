@@ -102,6 +102,118 @@ canvas{display:block;width:100%;height:100%}
   <button class="play-btn" style="margin-top:30px" onclick="location.reload()">🔄 JUGAR DE NUEVO</button>
 </div>
 <script>
+// === AUDIO SYSTEM — Retro Super Mario Style ===
+let audioCtx;
+function initAudio(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
+
+function playJumpSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario-style jump: ascending square wave
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='square';
+  o.frequency.setValueAtTime(350,t);
+  o.frequency.exponentialRampToValueAtTime(700,t+0.08);
+  o.frequency.exponentialRampToValueAtTime(900,t+0.12);
+  g.gain.setValueAtTime(0.12,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+  o.start(t);o.stop(t+0.15);
+}
+
+function playCrashSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario pipe/hit: descending buzz + noise burst
+  const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+  o1.connect(g1);g1.connect(audioCtx.destination);
+  o1.type='sawtooth';
+  o1.frequency.setValueAtTime(400,t);
+  o1.frequency.exponentialRampToValueAtTime(60,t+0.25);
+  g1.gain.setValueAtTime(0.15,t);
+  g1.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+  o1.start(t);o1.stop(t+0.3);
+  // Extra thud
+  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+  o2.connect(g2);g2.connect(audioCtx.destination);
+  o2.type='triangle';
+  o2.frequency.setValueAtTime(120,t);
+  o2.frequency.exponentialRampToValueAtTime(30,t+0.2);
+  g2.gain.setValueAtTime(0.18,t);
+  g2.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+  o2.start(t);o2.stop(t+0.25);
+}
+
+function playCoinSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario coin: two quick high-pitched notes
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='square';
+  o.frequency.setValueAtTime(988,t);         // B5
+  o.frequency.setValueAtTime(1319,t+0.07);   // E6
+  g.gain.setValueAtTime(0.1,t);
+  g.gain.setValueAtTime(0.1,t+0.07);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+  o.start(t);o.stop(t+0.2);
+}
+
+function playLevelUpSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario 1-UP / level clear fanfare
+  const notes=[523,659,784,1047,784,1047]; // C5 E5 G5 C6 G5 C6
+  notes.forEach((freq,i)=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type='square';
+    const start=t+i*0.1;
+    o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(0.1,start);
+    g.gain.exponentialRampToValueAtTime(0.001,start+0.12);
+    o.start(start);o.stop(start+0.12);
+  });
+}
+
+function playStartSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario start / power-up ascending arpeggio
+  const notes=[262,330,392,523,659,784]; // C4 E4 G4 C5 E5 G5
+  notes.forEach((freq,i)=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type='square';
+    const start=t+i*0.08;
+    o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(0.1,start);
+    g.gain.exponentialRampToValueAtTime(0.001,start+0.1);
+    o.start(start);o.stop(start+0.1);
+  });
+}
+
+function playWinSound(){
+  initAudio();const t=audioCtx.currentTime;
+  // Mario stage clear fanfare
+  const melody=[
+    [523,0],[523,0.12],[523,0.24],[0,0.36],
+    [415,0.42],[466,0.52],[523,0.62],[0,0.72],
+    [466,0.78],[523,0.88],[587,0.98],[659,1.08],
+    [784,1.18],[1047,1.38]
+  ];
+  melody.forEach(([freq,offset])=>{
+    if(freq===0)return;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type='square';
+    const start=t+offset;
+    o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(0.1,start);
+    g.gain.exponentialRampToValueAtTime(0.001,start+0.14);
+    o.start(start);o.stop(start+0.14);
+  });
+}
+// === END AUDIO SYSTEM ===
+
 const levels=[
   {tag:"NIVEL 1 DE 10",title:"¡BIENVENIDO!",emoji:"🎮",speak:"Dile al profesor: ¿Cómo se llama la materia, a qué programa pertenece y quién es el profesor?",body:`<strong>Materia:</strong> Programación Móvil<br><br><strong>Programa:</strong> Ingeniería de Sistemas<br><strong>Universidad:</strong> Popular del Cesar<br><strong>Profesor:</strong> Alex Vacca<br><br><div class="highlight">Esta asignatura te enseñará a desarrollar aplicaciones móviles reales, usando herramientas profesionales y buenas prácticas de la industria.</div>`,requiredJumps:3,speed:3,spawnInterval:90},
   {tag:"NIVEL 2 DE 10",title:"DATOS DE LA MATERIA",emoji:"📋",speak:"Dile al profesor: ¿Cuántos créditos tiene, cuántas horas y cuál es el prerrequisito?",body:`<div class="item"><div class="item-icon">🔢</div><div><strong>Código:</strong> SS603</div></div><div class="item"><div class="item-icon">⭐</div><div><strong>Créditos:</strong> 3 créditos académicos</div></div><div class="item"><div class="item-icon">📅</div><div><strong>Semestre:</strong> 6to semestre</div></div><div class="item"><div class="item-icon">⏰</div><div><strong>Horas totales:</strong> 144 horas (HTT)</div></div><div class="item"><div class="item-icon">👨‍🏫</div><div><strong>Con docente:</strong> 64h (32 directas + 32 prácticas)</div></div><div class="item"><div class="item-icon">📖</div><div><strong>Trabajo independiente:</strong> 80 horas (HTI)</div></div><div class="item"><div class="item-icon">🔗</div><div><strong>Prerrequisito:</strong> Programación Web</div></div><div class="item"><div class="item-icon">📝</div><div><strong>Tipo:</strong> Teórico-Práctico · No habilitable</div></div>`,requiredJumps:3,speed:3.5,spawnInterval:85},
@@ -209,6 +321,7 @@ function jump(){
   if(!gameRunning||gamePaused)return;
   if(dino.grounded){
     dino.vy=dino.jumpForce;dino.grounded=false;
+    playJumpSound();
     for(let i=0;i<5;i++)particles.push({x:dino.x+20,y:groundY,vx:(Math.random()-.5)*3,vy:-Math.random()*3-1,size:Math.random()*3+1,life:1,color:['#22c55e','#fbbf24','#16a34a'][Math.floor(Math.random()*3)]});
   }
 }
@@ -241,6 +354,7 @@ function updateHUD(){
 
 function levelComplete(){
   gamePaused=true;
+  playLevelUpSound();
   for(let i=0;i<35;i++)particles.push({x:dino.x+20,y:dino.y+20,vx:(Math.random()-.5)*10,vy:-Math.random()*10-2,size:Math.random()*5+2,life:1,color:['#00ff88','#00d4ff','#fbbf24','#f472b6','#a855f7'][Math.floor(Math.random()*5)]});
   showInfoPanel(currentLevel);
 }
@@ -252,7 +366,7 @@ function showInfoPanel(idx){
   document.getElementById('continueBtn').onclick=()=>{
     document.getElementById('infoPanel').classList.add('hidden');
     if(currentLevel<9){currentLevel++;obstaclesCleared=0;obstacles=[];spawnTimer=0;gamePaused=false;updateHUD()}
-    else{gameRunning=false;document.getElementById('hud').style.display='none';document.getElementById('tapZone').style.display='none';document.getElementById('winScreen').classList.remove('hidden')}
+    else{gameRunning=false;playWinSound();document.getElementById('hud').style.display='none';document.getElementById('tapZone').style.display='none';document.getElementById('winScreen').classList.remove('hidden')}
   };
 }
 
@@ -272,6 +386,7 @@ function update(){
   for(let i=obstacles.length-1;i>=0;i--){
     const o=obstacles[i];if(o.passed)continue;
     if(dx<o.x+o.w-4&&dx+dw>o.x+2&&dy<o.y+o.h-4&&dy+dh>o.y+2){
+      playCrashSound();
       for(let j=0;j<6;j++)particles.push({x:o.x+o.w/2,y:o.y,vx:(Math.random()-.5)*6,vy:-Math.random()*5-1,size:Math.random()*3+1,life:1,color:['#ef4444','#f97316','#fbbf24'][Math.floor(Math.random()*3)]});
       obstacles.splice(i,1);
       canvas.style.transform='translateX(4px)';setTimeout(()=>{canvas.style.transform='translateX(-2px)'},80);setTimeout(()=>{canvas.style.transform=''},160);
@@ -281,6 +396,7 @@ function update(){
   for(const o of obstacles){
     if(!o.passed&&o.x+o.w<dino.x){
       o.passed=true;obstaclesCleared++;
+      playCoinSound();
       showClearedPopup(dino.x+40,dino.y-10);
       for(let i=0;i<4;i++)particles.push({x:dino.x+30,y:dino.y,vx:Math.random()*4,vy:-Math.random()*4-1,size:Math.random()*3+1,life:1,color:'#00ff88'});
       updateHUD();
@@ -301,6 +417,7 @@ document.getElementById('tapZone').addEventListener('mousedown',e=>{e.preventDef
 document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
 
 document.getElementById('playBtn').addEventListener('click',()=>{
+  initAudio();playStartSound();
   document.getElementById('splashScreen').classList.add('hidden');
   document.getElementById('hud').style.display='flex';
   gameRunning=true;gamePaused=false;currentLevel=0;obstaclesCleared=0;score=0;spawnTimer=0;nextSpawnAt=40;
